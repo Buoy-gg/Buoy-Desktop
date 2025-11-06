@@ -413,9 +413,9 @@ export function useSyncQueriesExternal({
     );
 
     // ==========================================================
-    // Subscribe to query changes and sync to dashboard
+    // Reusable function to sync state changes to dashboard
     // ==========================================================
-    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+    const syncStateToDesktop = () => {
       if (!deviceId) {
         log(`${logPrefix} No persistent device ID found`, enableLogs, "warn");
         return;
@@ -433,7 +433,17 @@ export function useSyncQueriesExternal({
 
       // Send message to dashboard
       socket.emit("query-sync", syncMessage);
-    });
+    };
+
+    // ==========================================================
+    // Subscribe to query cache changes and sync to dashboard
+    // ==========================================================
+    const queryCacheSubscription = queryClient.getQueryCache().subscribe(syncStateToDesktop);
+
+    // ==========================================================
+    // Subscribe to mutation cache changes and sync to dashboard
+    // ==========================================================
+    const mutationCacheSubscription = queryClient.getMutationCache().subscribe(syncStateToDesktop);
 
     // ==========================================================
     // Cleanup function to unsubscribe from all events
@@ -443,7 +453,8 @@ export function useSyncQueriesExternal({
       queryActionSubscription?.off();
       initialStateSubscription?.off();
       onlineManagerSubscription?.off();
-      unsubscribe();
+      queryCacheSubscription();
+      mutationCacheSubscription();
     };
   }, [queryClient, socket, deviceName, isConnected, deviceId, enableLogs]);
 
