@@ -1,0 +1,142 @@
+---
+# Builds Buoy Desktop for all platforms and publishes a release on this repo.
+#
+# Source code lives in the PRIVATE Buoy-gg/buoy-packages monorepo; this
+# workflow checks it out via the PRIVATE_REPO_TOKEN secret (fine-grained PAT
+# with read access to that repo). The workflow runs here so that:
+#   - the Apple signing secrets stay where they already were
+#   - Actions minutes are free (public repo), incl. the 10x-cost macOS runners
+#   - releases land on this repo, which the app's auto-updater
+#     (update.electronjs.org) watches
+#
+# Triggered by scripts/release.sh in the monorepo (or manually from the
+# Actions tab).
+name: Build/release
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "buoy-packages git ref (SHA or branch) to build"
+        required: true
+        default: "main"
+      draft:
+        description: "Leave the release as a draft"
+        required: false
+        default: false
+        type: boolean
+      notes:
+        description: "Release notes body"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out app package.json from private repo
+        uses: actions/checkout@v4
+        with:
+          repository: Buoy-gg/buoy-packages
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          sparse-checkout: apps/desktop/package.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./apps/desktop/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building Buoy Desktop v$VERSION from ${{ inputs.ref }}"
+
+  build:
+    needs: meta
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        arch: [x64, arm64]
+
+    steps:
+      - name: Check out private source repo
+        uses: actions/checkout@v4
+        with:
+          repository: Buoy-gg/buoy-packages
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Import signing certificate
+        if: runner.os == 'macOS'
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo "$MACOS_CERTIFICATE" | base64 -D > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          security find-identity -v -p codesigning build.keychain
+
+      - name: Build and package app
+        working-directory: apps/desktop
+        env:
+          # osxSign/osxNotarize only apply to darwin packaging; these are
+          # ignored on the windows/linux runners.
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: pnpm run make --arch=${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.os }}-${{ matrix.arch }}
+          path: "apps/desktop/out/make/**/*.zip"
+          if-no-files-found: error
+
+  release:
+    needs: [meta, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./downloaded-artifacts
+
+      - name: Create or update release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ needs.meta.outputs.version }}
+          name: Buoy Desktop ${{ needs.meta.outputs.version }}
+          body: ${{ inputs.notes || format('Buoy Desktop {0}', needs.meta.outputs.version) }}
+          artifacts: "downloaded-artifacts/**/*.zip"
+          allowUpdates: true
+          replacesArtifacts: true
+          draft: ${{ inputs.draft }}
+          prerelease: false
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
