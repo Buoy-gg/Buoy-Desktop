@@ -127,12 +127,54 @@ jobs:
         with:
           path: ./downloaded-artifacts
 
+      # Rename forge's "Buoy-<platform>-<arch>-<version>.zip" to names humans
+      # can pick from a release page. CAUTION: update.electronjs.org selects
+      # mac update assets BY FILENAME — the macOS names must keep a "-mac"
+      # token and ".zip" suffix, and Apple Silicon must keep "-arm64"
+      # (see update.electronjs.org src/asset-platform.ts).
+      - name: Give downloads readable names
+        run: |
+          find downloaded-artifacts -name '*.zip' | while read -r f; do
+            new=$(basename "$f" \
+              | sed -e 's/-darwin-arm64-/-macOS-AppleSilicon-arm64-/' \
+                    -e 's/-darwin-x64-/-macOS-Intel-x64-/' \
+                    -e 's/-win32-/-Windows-/' \
+                    -e 's/-linux-/-Linux-/')
+            mv "$f" "$(dirname "$f")/$new"
+            echo "$(basename "$f") -> $new"
+          done
+
+      - name: Write release notes with download guide
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          BASE="https://github.com/${{ github.repository }}/releases/download/v$VERSION"
+          cat > release-body.md <<EOF
+          ${NOTES:-Buoy Desktop $VERSION}
+
+          ### Which download do I need?
+
+          | Your machine | Download |
+          | --- | --- |
+          | Mac — Apple chip (M1/M2/M3/M4) | [Buoy-macOS-AppleSilicon-arm64-$VERSION.zip]($BASE/Buoy-macOS-AppleSilicon-arm64-$VERSION.zip) |
+          | Mac — Intel | [Buoy-macOS-Intel-x64-$VERSION.zip]($BASE/Buoy-macOS-Intel-x64-$VERSION.zip) |
+          | Windows | [Buoy-Windows-x64-$VERSION.zip]($BASE/Buoy-Windows-x64-$VERSION.zip) |
+          | Windows on ARM | [Buoy-Windows-arm64-$VERSION.zip]($BASE/Buoy-Windows-arm64-$VERSION.zip) |
+          | Linux | [Buoy-Linux-x64-$VERSION.zip]($BASE/Buoy-Linux-x64-$VERSION.zip) |
+          | Linux on ARM | [Buoy-Linux-arm64-$VERSION.zip]($BASE/Buoy-Linux-arm64-$VERSION.zip) |
+
+          *Not sure which Mac you have? Apple menu → About This Mac — "Chip: Apple M…" means Apple chip; "Processor: Intel…" means Intel.*
+
+          macOS builds update themselves automatically. Windows and Linux: download the new version from this page.
+          EOF
+
       - name: Create or update release
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ needs.meta.outputs.version }}
           name: Buoy Desktop ${{ needs.meta.outputs.version }}
-          body: ${{ inputs.notes || format('Buoy Desktop {0}', needs.meta.outputs.version) }}
+          bodyFile: release-body.md
           artifacts: "downloaded-artifacts/**/*.zip"
           allowUpdates: true
           replacesArtifacts: true
