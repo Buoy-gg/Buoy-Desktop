@@ -13,9 +13,7 @@
 
 Buoy Desktop mirrors the [Buoy devtools](https://github.com/Buoy-gg/buoy) running inside your React Native app to a desktop dashboard — the same live session as the floating menu on the phone and the [MCP server](https://buoy.gg/buoy/latest/docs/mcp) in your editor. One live app, three ways in.
 
-<!-- TODO(austin): hero image — replace this comment with a desktop screenshot/GIF, e.g.
-![Buoy Desktop](https://github.com/user-attachments/assets/YOUR-ASSET-ID)
--->
+![Buoy Desktop — the Network panel inspecting a live device, with the performance HUD in the title bar](assets/desktop.png)
 
 </div>
 
