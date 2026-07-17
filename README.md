@@ -23,13 +23,13 @@ Buoy Desktop mirrors the [Buoy devtools](https://github.com/Buoy-gg/buoy) runnin
 
 Buoy Desktop is **free**. Download the zip for your platform from **[Releases](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest)** — macOS, Windows & Linux, x64 + arm64, macOS builds signed and notarized. Unzip, launch. It starts its own local broker on port `42831` and auto-detects devices.
 
-Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — the [Quick Start](https://buoy.gg/buoy/latest/docs/quick-start) is one component. Point it at the broker:
+Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — the [Quick Start](https://buoy.gg/buoy/latest/docs/quick-start) is one component. The connection is **automatic**: the app derives the broker address from the Metro dev server that served the bundle, so simulators, emulators, and physical devices on the same Wi-Fi all connect with zero config. Only special setups need an explicit `socketURL` (in the `externalSync` prop):
 
-| Where your app runs | Broker URL |
+| Setup | Broker URL |
 | --- | --- |
-| iOS Simulator / web | `http://localhost:42831` |
-| Android emulator | `http://10.0.2.2:42831` |
-| Physical device | `http://<your-computer-ip>:42831` |
+| Simulator, emulator, physical device on same Wi-Fi | automatic — nothing to configure |
+| Expo tunnel mode | `http://<your-computer-ip>:42831` |
+| Android over USB (`adb reverse tcp:42831 tcp:42831`) | `http://localhost:42831` |
 
 > [!NOTE]
 > Several devices can connect at once — simulators, physical phones, web, iOS and Android side by side. A title-bar switcher picks which one every tool inspects, mid-session. And the app keeps itself current: it checks for updates on launch and every 10 minutes, downloads in the background, and asks before restarting.
@@ -69,7 +69,11 @@ Captures the booted iOS Simulator. **Component mode** (the default): type a `tes
 
 ### Diagnostics
 
-A built-in diagnostics console logs device connections and instability — when a device drops, you see why.
+A built-in diagnostics console logs device connections and instability — when a device drops, you see why. The broker's own connection log streams in too: handshakes, disconnect reasons, duplicate-name renames, protocol version mismatches — including events from **before** you opened the console, so a failed connect is never invisible.
+
+### Troubleshooting built in
+
+No devices yet? The dashboard shows your machine's exact LAN URLs (`http://<ip>:42831`) with a test you can run straight from the phone's browser, plus a checklist of the common causes. Stale devices don't pile up either — offline entries can be removed with one click and age out on their own after a day.
 
 ---
 
