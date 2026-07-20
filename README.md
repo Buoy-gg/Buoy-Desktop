@@ -28,8 +28,8 @@ Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — th
 | Setup | Broker URL |
 | --- | --- |
 | Simulator, emulator, physical device on same Wi-Fi | automatic — nothing to configure |
+| Android over USB | automatic — just run `adb reverse tcp:42831 tcp:42831` |
 | Expo tunnel mode | `http://<your-computer-ip>:42831` |
-| Android over USB (`adb reverse tcp:42831 tcp:42831`) | `http://localhost:42831` |
 
 > [!NOTE]
 > Several devices can connect at once — simulators, physical phones, web, iOS and Android side by side. A title-bar switcher picks which one every tool inspects, mid-session. And the app keeps itself current: it checks for updates on launch and every 10 minutes, downloads in the background, and asks before restarting.
