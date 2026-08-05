@@ -38,16 +38,16 @@ Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — th
 
 ## 🧰 What you get
 
-**15 tools in the sidebar**, in 4 groups:
+**16 tools in the sidebar**, in 4 groups:
 
 | Group | Tools |
 | --- | --- |
-| **Inspect** | Network · Storage · Events · Console |
+| **Inspect** | Network · Storage · Events · Console · Images |
 | **State** | React Query · Redux · Zustand · Jotai |
 | **App** | Routes · Env · Impersonate · Renders |
-| **Capture** | Bench · Screenshot |
+| **Capture** | Bench · JS Top · Screenshot |
 
-Twelve get full-screen panels. React Query renders the real Buoy devtool inline. Screenshot is a one-shot action.
+Fourteen get full-screen panels. React Query renders the real Buoy devtool inline. Screenshot is a one-shot action.
 
 ### Live performance HUD
 
