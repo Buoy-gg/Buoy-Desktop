@@ -83,7 +83,7 @@ Buoy Desktop is free — no license needed to download, connect, and watch every
 
 **Weekend Pass:** every Saturday and Sunday, all Pro features unlock free for everyone — the navbar shows a violet WEEKEND PASS badge. Built into the product, not a promo.
 
-Pro is $29/seat/month or $290/year with a 14-day trial — and it also unlocks the [MCP server](https://buoy.gg/buoy/latest/docs/mcp), which gives your agent the same session. Limited-time annual sales show up on the pricing page. ➡️ [buoy.gg/pricing](https://buoy.gg/pricing)
+Paid plans start at $9/month for individuals (Solo) — companies license per seat with Business — with a 14-day trial, and they also unlock the [MCP server](https://buoy.gg/buoy/latest/docs/mcp), which gives your agent the same session. ➡️ [buoy.gg/pricing](https://buoy.gg/pricing)
 
 ---
 
