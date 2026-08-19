@@ -81,7 +81,7 @@ No devices yet? The dashboard shows your machine's exact LAN URLs (`http://<ip>:
 
 Buoy Desktop is free — no license needed to download, connect, and watch every tool stream live. **Pro** unlocks full history and unlimited capture (the free tier locks older entries). Activate by pasting a license key into the navbar License button — stored encrypted via the OS keychain — or connect a device that already has one and the dashboard adopts it automatically.
 
-**Weekend Pass:** every Saturday and Sunday, all Pro features unlock free for everyone — the navbar shows a violet WEEKEND PASS badge. Built into the product, not a promo.
+**Weekend Pass:** every Saturday and Sunday, all Pro features unlock free for anyone holding a key — including a free one (`npx buoy login`). The navbar shows a violet WEEKEND PASS badge. Built into the product, not a promo.
 
 Paid plans start at $9/month for individuals (Solo) — companies license per seat with Business — with a 14-day trial, and they also unlock the [MCP server](https://buoy.gg/buoy/latest/docs/mcp), which gives your agent the same session. ➡️ [buoy.gg/pricing](https://buoy.gg/pricing)
 
