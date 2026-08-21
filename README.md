@@ -79,7 +79,7 @@ No devices yet? The dashboard shows your machine's exact LAN URLs (`http://<ip>:
 
 ## 💳 Free to use. Pro unlocks the rest.
 
-Buoy Desktop is free — no license needed to download, connect, and watch every tool stream live. **Pro** unlocks full history and unlimited capture (the free tier locks older entries). Activate by pasting a license key into the navbar License button — stored encrypted via the OS keychain — or connect a device that already has one and the dashboard adopts it automatically.
+Buoy Desktop is free — no license needed to download, connect, and watch every tool stream live. **Pro** unlocks full history and unlimited capture (the free tier locks older entries). Click **Sign in** in the navbar and finish in your browser — Buoy Desktop picks up whatever license your account holds, free or paid, and stores it encrypted via the OS keychain. You can also paste a key directly, or connect a device that already has one and the dashboard adopts it automatically.
 
 **Weekend Pass:** every Saturday and Sunday, all Pro features unlock free for anyone holding a key — including a free one (`npx buoy login`). The navbar shows a violet WEEKEND PASS badge. Built into the product, not a promo.
 
