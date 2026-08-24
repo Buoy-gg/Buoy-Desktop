@@ -122,27 +122,44 @@ jobs:
     needs: [meta, build]
     runs-on: ubuntu-latest
     steps:
+      # Only for scripts/ (the update-manifest generator) — the app itself
+      # was already built from this ref in the build job.
+      - name: Check out private source repo (scripts)
+        uses: actions/checkout@v4
+        with:
+          repository: Buoy-gg/buoy-packages
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: source
+
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./downloaded-artifacts
 
       # Rename forge's "Buoy-<platform>-<arch>-<version>.zip" to names humans
-      # can pick from a release page. CAUTION: update.electronjs.org selects
-      # mac update assets BY FILENAME — the macOS names must keep a "-mac"
-      # token and ".zip" suffix, and Apple Silicon must keep "-arm64"
-      # (see update.electronjs.org src/asset-platform.ts).
+      # can pick from a release page. The mapping is LOAD-BEARING for both
+      # update feeds (update.electronjs.org picks mac assets by filename;
+      # electron-updater matches arch tokens in latest-mac.yml), so it lives
+      # in a unit-tested script instead of inline sed — see
+      # apps/desktop/src/__tests__/releaseAssetNames.test.ts.
       - name: Give downloads readable names
+        run: node source/apps/desktop/scripts/rename-release-assets.mjs --dir downloaded-artifacts
+
+      # electron-updater feed (the in-app update pill). Gathers the renamed
+      # mac zips into one dir and writes latest-mac.yml (sha512 + size per
+      # arch) next to them; the release step uploads it with the zips. The
+      # update.electronjs.org (Squirrel) feed above is untouched — clients
+      # older than 2.0.12 still update through it.
+      - name: Generate electron-updater manifest (latest-mac.yml)
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
         run: |
-          find downloaded-artifacts -name '*.zip' | while read -r f; do
-            new=$(basename "$f" \
-              | sed -e 's/-darwin-arm64-/-macOS-AppleSilicon-arm64-/' \
-                    -e 's/-darwin-x64-/-macOS-Intel-x64-/' \
-                    -e 's/-win32-/-Windows-/' \
-                    -e 's/-linux-/-Linux-/')
-            mv "$f" "$(dirname "$f")/$new"
-            echo "$(basename "$f") -> $new"
-          done
+          mkdir -p release-feed
+          find downloaded-artifacts -name '*macOS*.zip' -exec cp {} release-feed/ \;
+          ls -l release-feed
+          node source/apps/desktop/scripts/generate-update-manifest.mjs \
+            --dir release-feed --version "$VERSION"
 
       - name: Write release notes with download guide
         env:
@@ -175,7 +192,7 @@ jobs:
           tag: v${{ needs.meta.outputs.version }}
           name: Buoy Desktop ${{ needs.meta.outputs.version }}
           bodyFile: release-body.md
-          artifacts: "downloaded-artifacts/**/*.zip"
+          artifacts: "downloaded-artifacts/**/*.zip,release-feed/latest-mac.yml"
           allowUpdates: true
           replacesArtifacts: true
           draft: ${{ inputs.draft }}
