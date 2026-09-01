@@ -38,16 +38,28 @@ Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — th
 
 ## 🧰 What you get
 
-**16 tools in the sidebar**, in 4 groups:
+**17 tools in the sidebar**, in 4 groups:
 
 | Group | Tools |
 | --- | --- |
 | **Inspect** | Network · Storage · Events · Console · Images |
 | **State** | React Query · Redux · Zustand · Jotai |
 | **App** | Routes · Env · Impersonate · Renders |
-| **Capture** | Bench · JS Top · Screenshot |
+| **Capture** | Bench · JS Top · Screenshot · Camera |
 
 Fourteen get full-screen panels. React Query renders the real Buoy devtool inline. Screenshot is a one-shot action.
+
+### Camera (iOS)
+
+The iOS Simulator has never had a camera, so every camera screen either gets stubbed or forces you onto a real device. Point the Simulator at your **Mac screen, its webcam, an image, or a video file** and your app sees an ordinary `AVCaptureDevice`.
+
+The screen source is the interesting one: whatever sits *behind* the simulator window is what the phone's camera sees. Drag it over a QR code in your browser or a photo of a driver's licence and your app scans it — QR, **PDF417**, Aztec, DataMatrix, EAN/UPC and Code 128 all decode. Barcodes can be generated from typed text too, so testing an ID scanner doesn't start with finding an ID.
+
+Unlike everything else here, this needs **no Buoy integration in the app at all**. It works on any booted simulator app, including ones that have never heard of Buoy. Switching source is instant and doesn't require a relaunch.
+
+Click a source and the whole simulator has a camera, so you start your app however you normally do — `npx expo start`, `react-native run-ios`, Xcode, a test runner. The panel tells you when your app is actually receiving frames, which is a different question from whether the camera is on, and the one you actually care about.
+
+There's a CLI for the same thing (`buoycam source`, `launch`, `codes`, `diagnose` — all with `--json`), so CI and coding agents can drive it without a mouse, and four MCP tools so an agent can set up a scanner test on its own. `buoycam diagnose` exists because "it isn't working" has several very different causes — nothing publishing, publishing but your app isn't reading it, the library not loaded in that app, or another tool holding the simulator — and it names which one.
 
 ### Live performance HUD
 
