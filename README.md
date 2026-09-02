@@ -13,7 +13,7 @@
 
 Buoy Desktop mirrors the [Buoy devtools](https://github.com/Buoy-gg/buoy) running inside your React Native app — and, in beta, your [Flutter app](https://github.com/Buoy-gg/Buoy-Flutter) — to a desktop dashboard: the same live session as the floating menu on the phone and the [MCP server](https://buoy.gg/buoy/latest/docs/mcp) in your editor. One live app, three ways in.
 
-<img width="1140" height="940" alt="image" src="https://github.com/user-attachments/assets/c424d069-c77d-47ce-ba73-8b3d4f9d892a" />
+![Buoy Desktop — the Network panel inspecting a live device, with the performance HUD in the title bar](assets/desktop.png)
 
 </div>
 
