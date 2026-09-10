@@ -11,7 +11,7 @@
 [![legacy downloads](https://img.shields.io/npm/dt/react-native-react-query-devtools?style=flat-square&labelColor=1c1c1c&color=10B981&label=legacy%20downloads)](https://www.npmjs.com/package/react-native-react-query-devtools)
 [![Platforms](https://img.shields.io/badge/platform-macOS%20·%20Windows%20·%20Linux-10B981?style=flat-square&labelColor=1c1c1c)](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest)
 
-Buoy Desktop mirrors the [Buoy devtools](https://github.com/Buoy-gg/buoy) running inside your React Native app — and, in beta, your [Flutter app](https://github.com/Buoy-gg/Buoy-Flutter) — to a desktop dashboard: the same live session as the floating menu on the phone and the [MCP server](https://buoy.gg/buoy/latest/docs/mcp) in your editor. One live app, three ways in.
+Buoy Desktop mirrors the [Buoy devtools](https://github.com/Buoy-gg/buoy) running inside your React Native app — and, in beta, your [Flutter app](https://github.com/Buoy-gg/Buoy-Flutter) — to a desktop dashboard: the same live session as the floating menu on the phone and the [MCP server](https://buoy.gg/buoy/latest/docs/mcp) in your editor. One live app, four ways in — the fourth being [Ask Buoy](https://buoy.gg/buoy/latest/docs/tools/ask-buoy), the in-app AI chat, which this dashboard mirrors.
 
 ![Buoy Desktop — the Network panel inspecting a live device, with the performance HUD in the title bar](assets/desktop.png)
 
@@ -38,16 +38,20 @@ Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — th
 
 ## 🧰 What you get
 
-**17 tools in the sidebar**, in 4 groups:
+**24 tools in the sidebar**, in 6 groups:
 
 | Group | Tools |
 | --- | --- |
-| **Inspect** | Network · Storage · Events · Console · Images |
-| **State** | React Query · Redux · Zustand · Jotai |
-| **App** | Routes · Env · Impersonate · Renders |
+| **Inspect** | Network · Storage · Events · Console · Images · Assets · Sentry |
+| **State** | React Query · Redux · Zustand · Jotai · Time Machine |
+| **App** | Routes · Env · Impersonate · Renders · Scenarios *(coming soon)* |
 | **Capture** | Bench · JS Top · Screenshot · Camera |
+| **AI** | Ask Buoy *(beta)* |
+| **TV** | TV Remote · Focus Inspector |
 
-Fourteen get full-screen panels. React Query renders the real Buoy devtool inline. Screenshot is a one-shot action.
+**Ask Buoy** is a live, read-only mirror of the in-app AI chat, showing what the agent said, what it changed and what the turn cost, with remote undo. There is no composer here on purpose: the broker has no authentication, so conversations start on the device.
+
+Most get full-screen panels. React Query renders the real Buoy devtool inline. Screenshot is a one-shot action.
 
 ### Camera (iOS)
 
