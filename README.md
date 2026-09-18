@@ -2,7 +2,7 @@
 
 # 🖥️ Buoy Desktop
 
-**Every Buoy tool, full screen.**
+Inspect connected Buoy tools on your desktop.
 
 [Download](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest) · [Docs](https://buoy.gg/buoy/latest/docs/desktop) · [Get Buoy for your app](https://github.com/Buoy-gg/buoy) · [Pricing](https://buoy.gg/pricing)
 
@@ -21,53 +21,55 @@ Buoy Desktop mirrors the [Buoy devtools](https://github.com/Buoy-gg/buoy) runnin
 
 ## ⬇️ Download & Connect
 
-Buoy Desktop is **free**. Download the zip for your platform from **[Releases](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest)** — macOS, Windows & Linux, x64 + arm64, macOS builds signed and notarized. Unzip, launch. It starts its own local broker on port `42831` and auto-detects devices.
+1. Download the appropriate build from [Releases](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest), open it, and sign in to your Free or Pro Buoy account.
+2. Follow the [React Native Quick Start](https://buoy.gg/buoy/latest/docs/quick-start) and install `@buoy-gg/external-sync`. Restart Metro and open your app with its account key configured. Desktop sign-in and device sign-in are separate.
+3. Select the device in Desktop. Trigger a request or log in your app and confirm that it appears in the matching panel.
 
-Your app needs [Buoy devtools](https://github.com/Buoy-gg/buoy) installed — the [Quick Start](https://buoy.gg/buoy/latest/docs/quick-start) is one component. The connection is **automatic**: the app derives the broker address from the Metro dev server that served the bundle, so simulators, emulators, and physical devices on the same Wi-Fi all connect with zero config. Only special setups need an explicit `socketURL` (in the `externalSync` prop):
+Desktop starts a broker on port `42831`. React Native development connections normally derive its address from Metro. A physical device must be able to reach your computer over the network.
 
-| Setup | Broker URL |
+| Setup | Connection guidance |
 | --- | --- |
-| Simulator, emulator, physical device on same Wi-Fi | automatic — nothing to configure |
-| Android over USB | automatic — just run `adb reverse tcp:42831 tcp:42831` |
-| Expo tunnel mode | `http://<your-computer-ip>:42831` |
+| React Native development on the same LAN | Address discovery usually works through Metro. Check the dashboard diagnostics if it does not. |
+| Android over USB | Use `adb reverse tcp:42831 tcp:42831` with a device connection to the forwarded port. |
+| Expo tunnel | Set `externalSync.socketURL` to `http://<your-computer-ip>:42831`; the phone still needs network access to that address. |
+| Flutter physical device | Follow the debug-build setup and pass `socketUrl: 'http://<your-computer-ip>:42831'`. |
 
-> [!NOTE]
-> Several devices can connect at once — simulators, physical phones, web, iOS and Android side by side. A title-bar switcher picks which one every tool inspects, mid-session. And the app keeps itself current: it checks for updates on launch and every 10 minutes, downloads in the background, and asks before restarting.
+See the [Desktop guide](https://buoy.gg/buoy/latest/docs/desktop) for complete configuration, release sync, and troubleshooting. Several devices can connect at once; the title-bar switcher selects the inspected device.
 
 ---
 
 ## 🧰 What you get
 
-**24 tools in the sidebar**, in 6 groups:
+The sidebar groups tools by task. Availability depends on the connected app, installed tools, platform, and plan:
 
 | Group | Tools |
 | --- | --- |
 | **Inspect** | Network · Storage · Events · Console · Images · Assets · Sentry |
 | **State** | React Query · Redux · Zustand · Jotai · Time Machine |
-| **App** | Routes · Env · Impersonate · Renders · Scenarios *(coming soon)* |
+| **App** | Routes · Env · Impersonate · Renders · Scenarios |
 | **Capture** | Bench · JS Top · Screenshot · Camera |
 | **AI** | Ask Buoy *(beta)* |
 | **TV** | TV Remote · Focus Inspector |
 
-**Ask Buoy** is a live, read-only mirror of the in-app AI chat, showing what the agent said, what it changed and what the turn cost, with remote undo. There is no composer here on purpose: the broker has no authentication, so conversations start on the device.
+**Ask Buoy** is a live, read-only mirror of the in-app AI chat, showing what the agent said, what it changed and what the turn cost, with remote undo. Conversations start in the app. Broker account admission does not replace your app’s authorization checks for remote actions.
 
 Most get full-screen panels. React Query renders the real Buoy devtool inline. Screenshot is a one-shot action.
 
 ### Camera (iOS)
 
-The iOS Simulator has never had a camera, so every camera screen either gets stubbed or forces you onto a real device. Point the Simulator at your **Mac screen, its webcam, an image, or a video file** and your app sees an ordinary `AVCaptureDevice`.
+Buoy supplies camera feeds to supported iOS Simulator apps on macOS. Choose a webcam, screen region, generated barcode, image, video or test pattern. The app under test does not need the Buoy SDK, but its camera library and capture APIs must support the simulated path.
 
-The screen source is the interesting one: whatever sits *behind* the simulator window is what the phone's camera sees. Drag it over a QR code in your browser or a photo of a driver's licence and your app scans it — QR, **PDF417**, Aztec, DataMatrix, EAN/UPC and Code 128 all decode. Barcodes can be generated from typed text too, so testing an ID scanner doesn't start with finding an ID.
+Desktop requires an account. Webcam, image, video, pattern and QR generation are available at Free limits. Screen-region capture and non-QR generation require Pro access, as do camera MCP actions; `camera_diagnose` is available without the Pro gate.
 
-Unlike everything else here, this needs **no Buoy integration in the app at all**. It works on any booted simulator app, including ones that have never heard of Buoy. Switching source is instant and doesn't require a relaunch.
+Enable a source, then launch the app. Relaunch an app that was already running; Fast Refresh does not restart its process. Source changes after attachment do not normally require another relaunch. Grant host permissions for camera or screen capture when requested.
 
-Click a source and the whole simulator has a camera, so you start your app however you normally do — `npx expo start`, `react-native run-ios`, Xcode, a test runner. The panel tells you when your app is actually receiving frames, which is a different question from whether the camera is on, and the one you actually care about.
+The receiving status confirms frame consumption. Verify the app's scanner callback, photo or recording output separately. Helper-side barcode decoding does not prove that the app decoded the fixture.
 
-There's a CLI for the same thing (`buoycam source`, `launch`, `codes`, `diagnose` — all with `--json`), so CI and coding agents can drive it without a mouse, and four MCP tools so an agent can set up a scanner test on its own. `buoycam diagnose` exists because "it isn't working" has several very different causes — nothing publishing, publishing but your app isn't reading it, the library not loaded in that app, or another tool holding the simulator — and it names which one.
+The bundled `buoycam` CLI supports source selection, launch, diagnosis and cleanup. Set it up on your PATH before scripting a test. CI needs a configured macOS Simulator runner and native helpers; interactive capture sources also need a suitable logged-in session and permissions. See the [Camera guide](https://buoy.gg/buoy/latest/docs/tools/camera) for setup and compatibility limits.
 
 ### Live performance HUD
 
-Four channels stream from the device — **UI FPS, JS FPS, CPU, memory**. The HUD learns the device's real refresh ceiling (60, 90, or 120Hz) and colors FPS against *that*, not a hardcoded 60. Per-page stats rank which screens are slow. The dashboard even measures its own FPS — a devtool that watches itself.
+Depending on the platform and installed native modules, the device can stream UI FPS, JS FPS, CPU, and memory. The HUD learns the device's real refresh ceiling (60, 90, or 120Hz) and colors FPS against *that*, not a hardcoded 60. Per-page stats rank which screens are slow. The dashboard even measures its own FPS — a devtool that watches itself.
 
 ### Remote actions
 
@@ -75,8 +77,8 @@ Not a read-only mirror — the dashboard reaches back into the running app:
 
 - **Edit storage** — AsyncStorage, MMKV & SecureStore values, proxied live to the device
 - **Drive React Query** — refetch, invalidate & reset queries on a mirrored QueryClient
-- **Zustand time travel** — jump to any past state or reset, `setState` forwarded to the device
-- **Navigate** — jump to any route, pop-to-index, pop-to-top
+- **Zustand time travel** — jump to a retained state or reset, `setState` forwarded to the device
+- **Navigate** — navigate to supported routes, pop-to-index, pop-to-top
 - **Gate the firehose** — per-tool capture ON/OFF and per-source event toggles
 
 ### Screenshot tool
@@ -85,7 +87,7 @@ Captures the booted iOS Simulator. **Component mode** (the default): type a `tes
 
 ### Diagnostics
 
-A built-in diagnostics console logs device connections and instability — when a device drops, you see why. The broker's own connection log streams in too: handshakes, disconnect reasons, duplicate-name renames, protocol version mismatches — including events from **before** you opened the console, so a failed connect is never invisible.
+A built-in diagnostics console logs device connections and instability — when a device drops, you see why. The broker's own connection log streams in too: handshakes, disconnect reasons, duplicate-name renames, protocol version mismatches — including events from **before** you opened the console, to help investigate failed connections.
 
 ### Troubleshooting built in
 
@@ -93,20 +95,17 @@ No devices yet? The dashboard shows your machine's exact LAN URLs (`http://<ip>:
 
 ---
 
-## 💳 Free to use. Pro unlocks the rest.
+## Account and plans
 
-Buoy Desktop is free — no license needed to download, connect, and watch every tool stream live. **Pro** unlocks full history and unlimited capture (the free tier locks older entries). Click **Sign in** in the navbar and finish in your browser — Buoy Desktop picks up whatever license your account holds, free or paid, and stores it encrypted via the OS keychain. You can also paste a key directly, or connect a device that already has one and the dashboard adopts it automatically.
-
-**Weekend Pass:** every Saturday and Sunday, all Pro features unlock free for anyone holding a key — including a free one (`npx buoy login`). The navbar shows a violet WEEKEND PASS badge. Built into the product, not a promo.
-
-Paid plans start at $9/month for individuals (Solo) — companies license per seat with Business — with a 14-day trial, and they also unlock the [MCP server](https://buoy.gg/buoy/latest/docs/mcp), which gives your agent the same session. ➡️ [buoy.gg/pricing](https://buoy.gg/pricing)
+Buoy Desktop is free to download. Sign in to connect and inspect devices. A device key does not sign Desktop in. Pro features and capture limits depend on your account; see [pricing](https://buoy.gg/pricing) for current plans and Weekend Pass terms.
 
 ---
 
-## Nothing Leaves Your Machine
+<a id="nothing-leaves-your-machine"></a>
 
-> [!IMPORTANT]
-> Buoy's tools run inside your app's process and sync to Buoy Desktop over the local broker — localhost only, no cloud, no remote connections. Nothing ever leaves your machine.
+## Connections and data
+
+App sessions sync to the configured broker, which can be reachable over your LAN. Use a trusted development network. Desktop and device account validation make network requests; the [Telemetry guide](https://buoy.gg/buoy/latest/docs/telemetry) describes additional development telemetry. Ask Buoy sends requests to your configured model endpoint.
 
 ---
 
@@ -121,5 +120,3 @@ Proprietary software. © Buoy LLC. All rights reserved. See the [Terms of Servic
 ---
 
 > Looking for the legacy open-source React Query desktop tool that used to live here? It has been superseded by Buoy Desktop, which supports the full Buoy toolset.
-
-<p align="center"><sub>You read the whole README. See you Saturday. 🖥️</sub></p>

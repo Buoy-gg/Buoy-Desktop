@@ -192,7 +192,7 @@ jobs:
           tag: v${{ needs.meta.outputs.version }}
           name: Buoy Desktop ${{ needs.meta.outputs.version }}
           bodyFile: release-body.md
-          artifacts: "downloaded-artifacts/**/*.zip,release-feed/latest-mac.yml"
+          artifacts: "downloaded-artifacts/**/*.zip,release-feed/latest-mac.yml,release-feed/desktop-policy.json"
           allowUpdates: true
           replacesArtifacts: true
           draft: ${{ inputs.draft }}
