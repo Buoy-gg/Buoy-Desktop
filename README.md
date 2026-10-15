@@ -18,6 +18,15 @@ Buoy Desktop shows the [Buoy devtools](https://github.com/Buoy-gg/buoy) running 
   <img src="assets/desktop-print.png" alt="Buoy Desktop with the Network panel inspecting a live device" width="760" />
 </p>
 
+## Three.js (Beta)
+
+Scene shows the tree of your 3D app.
+Pick a node to hide, move, turn, or tint it.
+Use the [three.js guide](https://buoy.gg/buoy/latest/docs/web/three) for setup.
+It covers R3F and plain apps with `mountBuoy`.
+Add Scene and the `/web` external-sync module.
+A live Desktop check is still open for this beta.
+
 ## Get started
 
 1. [Download the latest release](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest), open it, and sign in to your Free or Pro Buoy account.
@@ -28,7 +37,7 @@ Desktop sign-in and the device's key are separate. Physical devices, Android ove
 
 ## What's inside
 
-Panels for Network, Storage, Events, Console, Images, Assets, Sentry, React Query, Redux, Zustand, Jotai, Time Machine, Routes, Env, Impersonate, Renders, Bench, JS Top, Ask Buoy, TV Remote and Focus Inspector. There's also a live performance HUD, a simulator screenshot tool, [Camera](https://buoy.gg/buoy/latest/docs/tools/camera) for the iOS Simulator, and a diagnostics console for connection problems.
+Panels for Network, Storage, Events, Console, Images, Assets, Sentry, React Query, Redux, Zustand, Jotai, Time Machine, Routes, Env, Impersonate, Renders, Bench, JS Top, Ask Buoy, TV Remote and Focus Inspector. There's also a live performance HUD, a simulator screenshot tool, [Camera](https://buoy.gg/buoy/latest/docs/tools/camera) for the iOS Simulator, and a diagnostics console for connection problems. The **Sims** panel shows your AI agent at work on the [Sim Farm](https://buoy.gg/buoy/latest/docs/tools/sim-farm). You see each run, with a live picture of every sim.
 
 Which panels you see depends on the connected app, the tools it has installed, the platform and your plan. See [pricing](https://buoy.gg/pricing) for what each plan includes.
 
