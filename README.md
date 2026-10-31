@@ -37,7 +37,7 @@ Desktop sign-in and the device's key are separate. Physical devices, Android ove
 
 ## What's inside
 
-Panels for Network, Storage, Events, Console, Images, Assets, Sentry, React Query, Redux, Zustand, Jotai, Time Machine, Routes, Env, Impersonate, Renders, Bench, JS Top, Ask Buoy, TV Remote and Focus Inspector. There's also a live performance HUD, a simulator screenshot tool, [Camera](https://buoy.gg/buoy/latest/docs/tools/camera) for the iOS Simulator, and a diagnostics console for connection problems. The **Sims** panel shows your AI agent at work on the [Sim Farm](https://buoy.gg/buoy/latest/docs/tools/sim-farm). You see each run, with a live picture of every sim.
+Panels for Network, Storage, Events, Console, Images, Assets, Sentry, React Query, Redux, Zustand, Jotai, Time Machine, Routes, Env, Impersonate, Renders, Bench, JS Top, Ask Buoy, Bug Links, TV Remote and Focus Inspector. There's also a live performance HUD, a simulator screenshot tool, [Camera](https://buoy.gg/buoy/latest/docs/tools/camera) for the iOS Simulator, and a diagnostics console for connection problems. The **Sims** panel shows your AI agent at work on the [Sim Farm](https://buoy.gg/buoy/latest/docs/tools/sim-farm). You see each run, with a live picture of every iOS sim and Android phone.
 
 Which panels you see depends on the connected app, the tools it has installed, the platform and your plan. See [pricing](https://buoy.gg/pricing) for what each plan includes.
 
@@ -50,3 +50,7 @@ Found a bug, or want a panel that doesn't exist yet? [Open an issue](https://git
 Proprietary software. © Buoy LLC. All rights reserved. See the [Terms of Service](https://buoy.gg/terms).
 
 <sub>Looking for the old open-source React Query desktop tool that used to live here? Buoy Desktop replaced it and supports the full Buoy toolset.</sub>
+
+### Native Profiler
+
+Trace native CPU work on iOS Simulator or Android. Find hot threads and long UI work in MCP or Desktop. Needs a Buoy Pro app. [Read the guide](https://buoy.gg/buoy/latest/docs/tools/native-profiler).
