@@ -111,11 +111,33 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: pnpm run make --arch=${{ matrix.arch }}
 
+      # Open the packaged app before anything ships: it must boot its window,
+      # answer on the broker port and quit on SIGTERM. Catches what only the
+      # packaged build can break (asar fuses, native helpers, a crash on
+      # start). Runs where the runner can run this arch.
+      - name: Launch check (the packaged app opens)
+        if: (runner.arch == 'ARM64' && matrix.arch == 'arm64') || (runner.arch == 'X64' && matrix.arch == 'x64')
+        working-directory: apps/desktop
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            macOS) APP="out/Buoy-darwin-${{ matrix.arch }}/Buoy.app" ;;
+            Windows) APP="out/Buoy-win32-${{ matrix.arch }}" ;;
+            Linux) APP="out/Buoy-linux-${{ matrix.arch }}" ;;
+          esac
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run --auto-servernum node scripts/smoke-packaged-app.mjs --app "$APP"
+          else
+            node scripts/smoke-packaged-app.mjs --app "$APP"
+          fi
+
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-${{ matrix.os }}-${{ matrix.arch }}
-          path: "apps/desktop/out/make/**/*.zip"
+          path: |
+            apps/desktop/out/make/**/*.zip
+            apps/desktop/out/make/**/*.dmg
           if-no-files-found: error
 
   release:
@@ -174,14 +196,16 @@ jobs:
 
           | Your machine | Download |
           | --- | --- |
-          | Mac — Apple chip (M1/M2/M3/M4) | [Buoy-macOS-AppleSilicon-arm64-$VERSION.zip]($BASE/Buoy-macOS-AppleSilicon-arm64-$VERSION.zip) |
-          | Mac — Intel | [Buoy-macOS-Intel-x64-$VERSION.zip]($BASE/Buoy-macOS-Intel-x64-$VERSION.zip) |
+          | Mac — Apple chip (M1/M2/M3/M4) | [Buoy-macOS-AppleSilicon-arm64-$VERSION.dmg]($BASE/Buoy-macOS-AppleSilicon-arm64-$VERSION.dmg) |
+          | Mac — Intel | [Buoy-macOS-Intel-x64-$VERSION.dmg]($BASE/Buoy-macOS-Intel-x64-$VERSION.dmg) |
           | Windows | [Buoy-Windows-x64-$VERSION.zip]($BASE/Buoy-Windows-x64-$VERSION.zip) |
           | Windows on ARM | [Buoy-Windows-arm64-$VERSION.zip]($BASE/Buoy-Windows-arm64-$VERSION.zip) |
           | Linux | [Buoy-Linux-x64-$VERSION.zip]($BASE/Buoy-Linux-x64-$VERSION.zip) |
           | Linux on ARM | [Buoy-Linux-arm64-$VERSION.zip]($BASE/Buoy-Linux-arm64-$VERSION.zip) |
 
           *Not sure which Mac you have? Apple menu → About This Mac — "Chip: Apple M…" means Apple chip; "Processor: Intel…" means Intel.*
+
+          On a Mac, open the .dmg and drag Buoy into Applications.
 
           macOS builds update themselves automatically. Windows and Linux: download the new version from this page.
           EOF
@@ -192,10 +216,35 @@ jobs:
           tag: v${{ needs.meta.outputs.version }}
           name: Buoy Desktop ${{ needs.meta.outputs.version }}
           bodyFile: release-body.md
-          artifacts: "downloaded-artifacts/**/*.zip,release-feed/latest-mac.yml,release-feed/desktop-policy.json"
+          artifacts: "downloaded-artifacts/**/*.zip,downloaded-artifacts/**/*.dmg,release-feed/latest-mac.yml,release-feed/desktop-policy.json"
           allowUpdates: true
           replacesArtifacts: true
           draft: ${{ inputs.draft }}
           prerelease: false
           makeLatest: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Homebrew: `brew install --cask buoy-gg/tap/buoy`. Writes the cask for
+      # this version (both DMG sha256s) and pushes it to Buoy-gg/homebrew-tap.
+      # Needs the HOMEBREW_TAP_TOKEN secret (push access to that repo);
+      # without it this step only says so. Drafts are skipped: the cask must
+      # point at a published release.
+      - name: Update the Homebrew cask
+        if: ${{ !inputs.draft }}
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "No HOMEBREW_TAP_TOKEN secret, so the Homebrew cask was not updated."
+            exit 0
+          fi
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/Buoy-gg/homebrew-tap.git" tap
+          node source/apps/desktop/scripts/homebrew-cask.mjs --dir downloaded-artifacts --version "$VERSION" --out tap/Casks/buoy.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/buoy.rb
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "buoy ${VERSION}"
+          git push

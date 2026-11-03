@@ -29,7 +29,7 @@ A live Desktop check is still open for this beta.
 
 ## Get started
 
-1. [Download the latest release](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest), open it, and sign in to your Free or Pro Buoy account.
+1. [Download the latest release](https://github.com/Buoy-gg/Buoy-Desktop/releases/latest). On a Mac, open the `.dmg` and drag Buoy into Applications. Then open Buoy and sign in to your Free or Pro Buoy account.
 2. Add `@buoy-gg/external-sync` to your React Native app (the [Quick start](https://buoy.gg/buoy/latest/docs/quick-start) covers the rest of the setup), then restart Metro and open the app.
 3. Pick the device in Desktop and trigger a request in your app to check that it shows up.
 
