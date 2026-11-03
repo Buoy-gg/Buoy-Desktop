@@ -131,6 +131,26 @@ jobs:
             node scripts/smoke-packaged-app.mjs --app "$APP"
           fi
 
+      # The Windows Setup .exe must install Buoy and the installed copy must
+      # open. Silent install (per user, no admin), the same launch check on
+      # the installed app, then a silent uninstall.
+      - name: Install check (the Windows installer works)
+        if: runner.os == 'Windows' && ((runner.arch == 'ARM64' && matrix.arch == 'arm64') || (runner.arch == 'X64' && matrix.arch == 'x64'))
+        working-directory: apps/desktop
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem "out/make/nsis/${{ matrix.arch }}" -Filter "*Setup*.exe" | Select-Object -First 1
+          if (-not $setup) { throw "No Setup .exe was built." }
+          Write-Host "Installing $($setup.Name)"
+          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
+          $exe = Get-ChildItem "$env:LOCALAPPDATA\Programs" -Recurse -Filter "Buoy.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { throw "The installer did not put Buoy.exe under $env:LOCALAPPDATA\Programs." }
+          Write-Host "Installed at $($exe.DirectoryName)"
+          node scripts/smoke-packaged-app.mjs --app $exe.DirectoryName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $uninstall = Get-ChildItem $exe.DirectoryName -Filter "Uninstall*.exe" | Select-Object -First 1
+          if ($uninstall) { Start-Process -FilePath $uninstall.FullName -ArgumentList "/S" -Wait }
+
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -138,6 +158,7 @@ jobs:
           path: |
             apps/desktop/out/make/**/*.zip
             apps/desktop/out/make/**/*.dmg
+            apps/desktop/out/make/nsis/**/*Setup*.exe
           if-no-files-found: error
 
   release:
@@ -183,6 +204,19 @@ jobs:
           node source/apps/desktop/scripts/generate-update-manifest.mjs \
             --dir release-feed --version "$VERSION"
 
+      # The Windows feed: latest.yml lists both Setup installers. The
+      # installed app's updater reads it and runs the new installer.
+      - name: Generate electron-updater manifest (latest.yml, Windows)
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          mkdir -p release-feed-win
+          find downloaded-artifacts -name 'Buoy-Windows-*Setup*.exe' -exec cp {} release-feed-win/ \;
+          ls -l release-feed-win
+          node source/apps/desktop/scripts/generate-update-manifest.mjs \
+            --dir release-feed-win --version "$VERSION" --platform win
+          cp release-feed-win/latest.yml release-feed/latest.yml
+
       - name: Write release notes with download guide
         env:
           VERSION: ${{ needs.meta.outputs.version }}
@@ -198,16 +232,16 @@ jobs:
           | --- | --- |
           | Mac — Apple chip (M1/M2/M3/M4) | [Buoy-macOS-AppleSilicon-arm64-$VERSION.dmg]($BASE/Buoy-macOS-AppleSilicon-arm64-$VERSION.dmg) |
           | Mac — Intel | [Buoy-macOS-Intel-x64-$VERSION.dmg]($BASE/Buoy-macOS-Intel-x64-$VERSION.dmg) |
-          | Windows | [Buoy-Windows-x64-$VERSION.zip]($BASE/Buoy-Windows-x64-$VERSION.zip) |
-          | Windows on ARM | [Buoy-Windows-arm64-$VERSION.zip]($BASE/Buoy-Windows-arm64-$VERSION.zip) |
+          | Windows | [Buoy-Windows-x64-Setup-$VERSION.exe]($BASE/Buoy-Windows-x64-Setup-$VERSION.exe) |
+          | Windows on ARM | [Buoy-Windows-arm64-Setup-$VERSION.exe]($BASE/Buoy-Windows-arm64-Setup-$VERSION.exe) |
           | Linux | [Buoy-Linux-x64-$VERSION.zip]($BASE/Buoy-Linux-x64-$VERSION.zip) |
           | Linux on ARM | [Buoy-Linux-arm64-$VERSION.zip]($BASE/Buoy-Linux-arm64-$VERSION.zip) |
 
           *Not sure which Mac you have? Apple menu → About This Mac — "Chip: Apple M…" means Apple chip; "Processor: Intel…" means Intel.*
 
-          On a Mac, open the .dmg and drag Buoy into Applications.
+          On a Mac, open the .dmg and drag Buoy into Applications. On Windows, run the Setup .exe.
 
-          macOS builds update themselves automatically. Windows and Linux: download the new version from this page.
+          Mac and Windows copies update themselves. On Linux, get each new version from this page.
           EOF
 
       - name: Create or update release
@@ -216,7 +250,7 @@ jobs:
           tag: v${{ needs.meta.outputs.version }}
           name: Buoy Desktop ${{ needs.meta.outputs.version }}
           bodyFile: release-body.md
-          artifacts: "downloaded-artifacts/**/*.zip,downloaded-artifacts/**/*.dmg,release-feed/latest-mac.yml,release-feed/desktop-policy.json"
+          artifacts: "downloaded-artifacts/**/*.zip,downloaded-artifacts/**/*.dmg,downloaded-artifacts/**/*Setup*.exe,release-feed/latest-mac.yml,release-feed/latest.yml,release-feed/desktop-policy.json"
           allowUpdates: true
           replacesArtifacts: true
           draft: ${{ inputs.draft }}
